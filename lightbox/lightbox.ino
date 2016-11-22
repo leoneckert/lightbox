@@ -24,7 +24,6 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   Serial.begin(9600);
-  strip.begin();
 
   pinMode(button_one, INPUT);
   pinMode(pot_pin, INPUT);
