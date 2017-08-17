@@ -213,7 +213,7 @@ void loop() {
       if(button1_changed == true){
 
         leoncolorindex = leoncolorindex + 1;
-        Serial.println(sizeof(leoncolor) / sizeof(uint32_t) );
+//        Serial.println(sizeof(leoncolor) / sizeof(uint32_t) );
         if(leoncolorindex > 1){
           leoncolorindex = 0;
         }
