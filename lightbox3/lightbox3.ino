@@ -4,7 +4,10 @@
 // press the button it will change to a new pixel animation.  Note that you need to press the
 // button once to start the first animation!
 
-#include <Adafruit_NeoPixel.h>
+//#include <Adafruit_NeoPixel.h>
+#include "FastLED.h"
+
+
 
 bool state_changed = 0;
 
@@ -42,20 +45,30 @@ bool pot_changed = false;
 
 #define PIXEL_COUNT 30
 
-// Parameter 1 = number of pixels in strip,  neopixel stick has 8
-// Parameter 2 = pin number (most are valid)
-// Parameter 3 = pixel type flags, add together as needed:
-//NEO_RGB     Pixels are wired for RGB bitstream
-//NEO_GRB     Pixels are wired for GRB bitstream, correct for neopixel stick
-//NEO_KHZ400  400 KHz bitstream (e.g. FLORA pixels)
-//NEO_KHZ800  800 KHz bitstream (e.g. High Density LED strip), correct for neopixel stick
+CRGB leds[PIXEL_COUNT];
 
-//
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
-//
-//
-//
-//float old_pot_percentage = -0.0;
+
+
+//MODE variables:
+
+// m0
+
+int m0hsvselector = 0;
+int m0hsvvalues[] = {255, 255, 255};
+int m0softnoisetoggle = -1;
+long int m0noisetime = 0;
+long int m0noisefrequency = 0;
+int m0noiseintensity = 100;
+
+int m0noiseidx = 0;
+
+int m0noisespeeds[30];
+long int m0noiseidcs[30];
+int m0noisesatval[30];
+
+
+
+
 
 void setup() {
   Serial.begin(9600);
@@ -70,22 +83,57 @@ void setup() {
 
 
   //
-  strip.begin();
-  for (uint16_t i = 0; i < strip.numPixels(); i++) {
+  //  strip.begin();
+  //  strip.show(); // Initialize all pixels to 'off'
+  FastLED.addLeds<NEOPIXEL, 6>(leds, PIXEL_COUNT);
 
-    float shade = 30;
-    //        float shade = 120;
-    //        Serial.print("shade: ");\
-    //      Serial.println();
-    //        Serial.println(shade);
-    strip.setPixelColor(i, strip.Color(shade, shade, shade));
 
+
+  //MODE setups:
+  // m0
+
+  for (int i = 0; i < PIXEL_COUNT; i++) {
+    m0noisespeeds[i] = int(random(1, 4));
+    Serial.print( m0noisespeeds[i]);
+    Serial.print( "  ");
+
+    m0noiseidcs[i] = int(random(0, 100));
+    Serial.print( m0noiseidcs[i]);
+    Serial.print( "  ");
+    m0noisesatval[i] = int(random(1, 3));
+    Serial.print( m0noisesatval[i]);
+    Serial.print( "  ");
+    Serial.println("");
   }
-  strip.show(); // Initialize all pixels to 'off'
 }
 
-int leoncolorindex = 0;
-uint32_t leoncolor[] = { strip.Color(250, 0, 0), strip.Color(0, 255, 0) };
+
+
+
+//uint8_t m0noiseintensity = 70;
+
+//int colorwheelindex = 0;
+//uint32_t colorwheelcolors[] = {
+//  strip.Color(255, 255, 255),
+//
+//  strip.Color(250, 0, 0),
+//  strip.Color(250, 123, 0),
+//  strip.Color(250, 250, 0),
+//
+//  strip.Color(123, 250, 0),
+//  strip.Color(0, 250, 0),
+//  strip.Color(0, 250, 123),
+//
+//  strip.Color(0, 250, 250),
+//  strip.Color(0, 123, 250),
+//  strip.Color(0, 0, 250),
+//
+//
+//  strip.Color(123, 0, 250),
+//  strip.Color(250, 0, 250),
+//  strip.Color(250, 0, 123)
+//  };
+
 
 
 //bool state_changed = false;
@@ -134,8 +182,8 @@ void loop() {
   int pot_val = analogRead(POT_PIN);  // min value: 575 / max value: 870
   int pot_range = map(pot_val, min_a_read, max_a_read, 0, 109);
   int new_pot_range = 0;
-  for (int i = 0; i <= 10; i++) {
-    int v = i * 10;
+  for (int i = 0; i <= 20; i++) {
+    int v = i * 5;
     if (pot_range > v) {
       new_pot_range = v;
     }
@@ -193,6 +241,12 @@ void loop() {
   }
 
 
+
+
+  ////////////////////////////BELOW HERE HAPPENS THE ACTUAL MAGIC:
+
+
+
   //  if(pot_changed == true){
   //    for(uint16_t i=0; i<15; i++) {
   //      float shade = 250 * old_pot_state;
@@ -208,67 +262,256 @@ void loop() {
   //    delay(50);
   //  }
 
-  if(state_changed == true){
-    if(old_rotary_state == 0){
-      if(button1_changed == true){
 
-        leoncolorindex = leoncolorindex + 1;
-//        Serial.println(sizeof(leoncolor) / sizeof(uint32_t) );
-        if(leoncolorindex > 1){
-          leoncolorindex = 0;
+  //    leds[0] = CRGB::White; FastLED.show(); delay(30);
+  //    leds[0] = CRGB::Black; FastLED.show(); delay(30);
+  //    leds[10] = CRGB::White; FastLED.show(); delay(30);
+  //    leds[10] = CRGB::Black; FastLED.show(); delay(30);
+
+  if (state_changed == true) {
+
+    if (old_rotary_state == 0) {
+
+      //      MODE ZERO
+
+      //      LET SELECT ONE COLOR AND ADJUST BRIGHTNESS OF THAT COLOR
+      //      ONE BUTTON SWTICHES HSV IDX,
+      //      POT CHANGES THE VALUES
+      //      THE OTHER BUTTON ADDS SOFT SAT and brightness noise
+
+
+      Serial.println("MODE: 0");
+
+      if (button1_changed == true) {
+        m0hsvselector += 1;
+        if (m0hsvselector > 2) {
+          m0hsvselector = 0;
+          Serial.print("m0hsvselector");
+          Serial.println(m0hsvselector);
         }
-
-        for(uint16_t i=0; i<15; i++) {
-//          float shade = 250 * old_pot_state;
-    //        float shade = 250;
-//          Serial.print("shade: ");\
-//          Serial.println();
-
-          
-          strip.setPixelColor(i, leoncolor[leoncolorindex]);
-        }
-        rotary_changed = false;
-        pot_changed = false;
-        strip.show();
-        delay(50);
-       
       }
+      if (button2_changed == true) {
+        m0softnoisetoggle *= -1;
+      }
+      if (pot_changed) {
+        m0hsvvalues[m0hsvselector] = old_pot_state * 255;
+        Serial.print("m0hsvvalues");
+        Serial.print(m0hsvvalues[0]);
+        Serial.print(m0hsvvalues[1]);
+        Serial.println(m0hsvvalues[2]);
+      }
+      //
+      //      uint32_t currentColor = colorwheelcolors[colorwheelindex];
+      //      Serial.println(currentColor);
+
+      for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
+        //        float shade = 30;
+        leds[i] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
+        //        float shade = 120;
+        //        Serial.print("shade: ");\
+        //      Serial.println();
+        //        Serial.println(shade);
+        //        strip.setPixelColor(i, currentColor);
+      }
+      FastLED.show();
+      delay(30);
 
 
-      state_changed = false;
-      button1_changed = false;
-      
+
+
+
+      //
+
+    } else if (old_rotary_state == 1) {
+
+      //      MODE ONE
+      Serial.println("MODE: 1");
+
+
+
+      //
+
+    } else if (old_rotary_state == 2) {
+
+      //      MODE TWO
+      Serial.println("MODE: 2");
+
+
+
+      //
+
+    } else if (old_rotary_state == 3) {
+
+      //      MODE THREE
+      Serial.println("MODE: 3");
+
+
+
+      //
+
+    } else if (old_rotary_state == 4) {
+
+      //      MODE FOUR
+      Serial.println("MODE: 4");
+
+
+
+      //
+
+    } else if (old_rotary_state == 5) {
+
+      //      MODE FIVE
+      Serial.println("MODE: 5");
+
+
+
+      //
+
     }
-    
 
 
+    pot_changed = false;
+    button1_changed = false;
+    button2_changed = false;
+    state_changed = false;
 
-    
   }
-  
-//
-//  if (rotary_changed == true || just_started == true) {
-//    just_started = false;
-//    for (uint16_t i = 0; i < 15; i++) {
-//      if (old_rotary_state == 0) { 
-//          strip.setPixelColor(i, strip.Color(250, 0, 0));
-//      } else if (old_rotary_state == 1) {
-//          strip.setPixelColor(i, strip.Color(0, 250, 0));
-//      } else if (old_rotary_state == 2) {
-//          strip.setPixelColor(i, strip.Color(0, 0, 250));
-//      } else if (old_rotary_state == 3) {
-//          strip.setPixelColor(i, strip.Color(250, 250, 0));
-//      } else if (old_rotary_state == 4) {
-//          strip.setPixelColor(i, strip.Color(250, 0, 250));
-//      } else if (old_rotary_state == 5) {
-//          strip.setPixelColor(i, strip.Color(0, 250, 250));
-//      }
-//    }
-//    rotary_changed = false;
-//    pot_changed = false;
-//    strip.show();
-//    delay(50);
-//  }
+
+  // Here comes stuff that happens every loop:
+
+  if (old_rotary_state == 0) {
+    // MODE 0, everyloop
+    if (m0softnoisetoggle == -1 && millis() - m0noisetime > m0noisefrequency ) {
+      //        Serial.println( cubicwave8(m0noiseidx) );
+      //        m0noiseidx += 1;
+      //        leds[10] = CHSV( m0hsvvalues[0], cubicwave8(m0noiseidx), m0hsvvalues[2]);
+
+      for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
+        m0noiseidcs[i] += m0noisespeeds[i];
+        Serial.print(i);
+        Serial.print("  ");
+        Serial.print(m0noiseidcs[i]);
+        Serial.print("  ");
+        Serial.println(cubicwave8(m0noiseidcs[i]));
+
+        int v = m0hsvvalues[m0noisesatval[i]] + map(cubicwave8(m0noiseidcs[i]), 0, 255, m0noiseintensity * -1, m0noiseintensity);
+        if (v > 255) {
+          v = 255;
+        } else if (v < 0) {
+          v = 0;
+        }
+        if (m0noisesatval[i] == 1) {
+          leds[i] = CHSV( m0hsvvalues[0], v, m0hsvvalues[2]);
+        } else {
+          if (v < 20) {
+            v = 20;
+          }
+          leds[i] = CHSV( m0hsvvalues[0], m0hsvvalues[1], v);
+        }
+
+
+      }
+      //        int r = random(0, 1000);
+      //        float rr = r * 0.001;
+      //        if (rr < 0.01) {
+      //          Serial.println("making change!");
+      //          int rrr = random(0, 100);
+      //          int rrrr = random(0, 100);
+      //          if (rrr < 50) {
+      //            if (rrrr < 50) {
+      //              int v = m0hsvvalues[1] + m0noiseintensity;
+      //              if (v > 255) {
+      //                v = 255;
+      //              };
+      //              leds[i] = CHSV( m0hsvvalues[0], v, m0hsvvalues[2]);
+      //            } else {
+      //              int v = m0hsvvalues[1] - m0noiseintensity;
+      //              if (v < 0) {
+      //                v = 0;
+      //              };
+      //              leds[i] = CHSV( m0hsvvalues[0], v, m0hsvvalues[2]);
+      //            }
+      //          } else {
+      //            if (rrrr < 50) {
+      //              int v = m0hsvvalues[2] + m0noiseintensity;
+      //              if (v > 255) {
+      //                v = 255;
+      //              };
+      //              leds[i] = CHSV( m0hsvvalues[0], m0hsvvalues[1], v);
+      //            } else {
+      //              int v = m0hsvvalues[2] - m0noiseintensity;
+      //              if (v < 0) {
+      //                v = 0;
+      //              };
+      //              leds[i] = CHSV( m0hsvvalues[0], m0hsvvalues[1], v);
+      //            }
+      //          }
+      //
+      //
+      //        } else {
+      //          //          leds[i] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
+      //        }
+      //      }
+
+
+      FastLED.show();
+      delay(30);
+      m0noisetime = millis();
+
+
+    }
+
+  }
+
+  //old mode 0:
+  //
+  //      if(button1_changed == true){
+  //        leoncolorindex = leoncolorindex + 1;
+  ////        Serial.println(sizeof(leoncolor) / sizeof(uint32_t) );
+  //        if(leoncolorindex > 1){
+  //          leoncolorindex = 0;
+  //        }
+  //
+  //        for(uint16_t i=0; i<15; i++) {
+  ////          float shade = 250 * old_pot_state;
+  //    //        float shade = 250;
+  ////          Serial.print("shade: ");\
+  ////          Serial.println();
+  //
+  //
+  //          strip.setPixelColor(i, leoncolor[leoncolorindex]);
+  //        }
+  //        rotary_changed = false;
+  //        pot_changed = false;
+  //        strip.show();
+  //        delay(50);
+
+
+
+
+  //
+  //  if (rotary_changed == true || just_started == true) {
+  //    just_started = false;
+  //    for (uint16_t i = 0; i < 15; i++) {
+  //      if (old_rotary_state == 0) {
+  //          strip.setPixelColor(i, strip.Color(250, 0, 0));
+  //      } else if (old_rotary_state == 1) {
+  //          strip.setPixelColor(i, strip.Color(0, 250, 0));
+  //      } else if (old_rotary_state == 2) {
+  //          strip.setPixelColor(i, strip.Color(0, 0, 250));
+  //      } else if (old_rotary_state == 3) {
+  //          strip.setPixelColor(i, strip.Color(250, 250, 0));
+  //      } else if (old_rotary_state == 4) {
+  //          strip.setPixelColor(i, strip.Color(250, 0, 250));
+  //      } else if (old_rotary_state == 5) {
+  //          strip.setPixelColor(i, strip.Color(0, 250, 250));
+  //      }
+  //    }
+  //    rotary_changed = false;
+  //    pot_changed = false;
+  //    strip.show();
+  //    delay(50);
+  //  }
 
 
 
