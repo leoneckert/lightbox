@@ -50,6 +50,43 @@ CRGB leds[PIXEL_COUNT];
 
 //MODE variables:
 
+// color
+
+int colorselectstage = 0;
+int currentColor = 0;
+bool colorselectfullscreen = 0;
+
+bool colorselectgroups[][30] = {
+  {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
+  {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,},
+
+  {0, 0, 0, 0, 0, 0, 1, 1, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
+  {0, 0, 0, 0, 0, 0, 1, 1, 0, 0,  0, 0, 1, 1, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 1, 1, 0, 0,},
+
+  {0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
+  {0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 1, 1, 0, 0, 0, 0,},
+
+  {0, 0, 1, 1, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
+  {0, 0, 1, 1, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 1, 1, 0, 0,  0, 0, 1, 1, 0, 0, 0, 0, 0, 0,},
+
+
+  {1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
+  {1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,},
+
+};
+long int colortimer = millis();
+int randomcolorinterval = 400;
+
+int colors[5][4] = {
+  {255, 255, 255, 0},
+  {255, 255, 255, 0},
+  {120, 255, 255, 0},
+  {255, 255, 255, 0},
+  {255, 0, 255, 0}
+};
+
+
+
 // m0
 
 int m0hsvselector = 0;
@@ -250,6 +287,96 @@ void loop() {
 
     if (old_rotary_state == 0) {
 
+
+      // COLOR:
+
+
+      Serial.println("MODE: COLOR");
+      if (button1_changed == true) {
+        colorselectstage += 1;
+        if (colorselectstage > 3) {
+          colorselectstage = 0;
+          currentColor += 1;
+          if (currentColor > 4) {
+            currentColor = 0;
+          }
+        }
+        if (colorselectstage > 20) {
+          colorselectstage = 0;
+        }
+
+        Serial.print("colorselectstage");
+        Serial.println(colorselectstage);
+        Serial.print("currentColor");
+        Serial.println(currentColor);
+      }
+      if (button2_changed == true) {
+        if (colorselectfullscreen == true) {
+          colorselectfullscreen = false;
+        } else {
+          colorselectfullscreen = true;
+        }
+      }
+      if (pot_changed) {
+        //        m0hsvvalues[m0hsvselector] = old_pot_state * 255;
+        colors[currentColor][colorselectstage] = old_pot_state * 255;
+        if (colorselectstage == 3) {
+          if (old_pot_state < 0.5) {
+            colors[currentColor][colorselectstage] = 0;
+          } else {
+            colors[currentColor][colorselectstage] = 1;
+          }
+        }
+
+      }
+
+
+
+
+
+
+
+      //
+
+    } else if (old_rotary_state == 1) {
+
+      //      MODE ONE
+      Serial.println("MODE: 1");
+
+      if (button1_changed == true) {
+        m1hsvselector += 1;
+        if (m1hsvselector > 2) {
+          m1hsvselector = 0;
+        }
+      }
+      if (button2_changed == true) {
+        m1softanimationtoggle *= -1;
+      }
+      if (pot_changed) {
+        m1hsvvalues[m1hsvselector] = old_pot_state * 255;
+      }
+
+      //      if (m1softanimationtoggle == 1) {
+      //        for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
+      //          leds[i] = CHSV(0, 0, 0);
+      //          //          leds[i] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+      //        }
+      //        leds[14] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+      //        leds[15] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+      //      } else {
+      m1animationchangemade = true;
+      //      }
+
+
+
+      //
+
+    } else if (old_rotary_state == 2) {
+
+      //      MODE TWO
+      Serial.println("MODE: 2");
+
+
       //      MODE ZERO
 
       //      LET SELECT ONE COLOR AND ADJUST BRIGHTNESS OF THAT COLOR
@@ -300,50 +427,6 @@ void loop() {
 
 
 
-
-
-      //
-
-    } else if (old_rotary_state == 1) {
-
-      //      MODE ONE
-      Serial.println("MODE: 1");
-
-      if (button1_changed == true) {
-        m1hsvselector += 1;
-        if (m1hsvselector > 2) {
-          m1hsvselector = 0;
-        }
-      }
-      if (button2_changed == true) {
-        m1softanimationtoggle *= -1;
-      }
-      if (pot_changed) {
-        m1hsvvalues[m1hsvselector] = old_pot_state * 255;
-      }
-
-      //      if (m1softanimationtoggle == 1) {
-      //        for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
-      //          leds[i] = CHSV(0, 0, 0);
-      //          //          leds[i] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-      //        }
-      //        leds[14] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-      //        leds[15] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-      //      } else {
-      m1animationchangemade = true;
-      //      }
-
-
-
-      //
-
-    } else if (old_rotary_state == 2) {
-
-      //      MODE TWO
-      Serial.println("MODE: 2");
-
-
-
       //
 
     } else if (old_rotary_state == 3) {
@@ -384,8 +467,48 @@ void loop() {
   }
 
   // Here comes stuff that happens every loop:
+  if (old_rotary_state == 0 && millis() - colortimer > randomcolorinterval ) {
 
-  if (old_rotary_state == 1) {
+
+    for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+      leds[j] = CHSV(0, 0, 0);
+
+    }
+
+    if (colorselectfullscreen == false) {
+      for (uint16_t i = 0; i < 10; i += 2) {
+        int randomcolor = int(random(0, 256));
+        for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+          if ( (i / 2 != currentColor && colorselectgroups[i][j] == 0) || ( i / 2 == currentColor && colorselectgroups[i + 1][j] == 0 )) {
+          } else {
+            if (colors[i / 2][3] == 0) {
+              leds[j] = CHSV( colors[i / 2][0], colors[i / 2][1], colors[i / 2][2]);
+            } else {
+              leds[j] = CHSV( randomcolor, randomcolor, colors[i / 2][2]);
+            }
+
+          }
+        }
+      }
+    } else {
+      int randomcolor = int(random(0, 256));
+      for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+        if (colors[currentColor][3] == 0) {
+          leds[j] = CHSV( colors[currentColor][0], colors[currentColor][1], colors[currentColor][2]);
+        } else {
+          leds[j] = CHSV( randomcolor, randomcolor, colors[currentColor][2]);
+        }
+        
+      }
+    }
+
+    FastLED.show();
+    delay(30);
+    colortimer = millis();
+
+
+
+  } else if (old_rotary_state == 1) {
     // MODE 1, everyloop
     if (m1animationchangemade == true || (millis() - m1animationtime > m1animationspeed && millis() - m1animationtime > m1animationdelay )) {
       for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
