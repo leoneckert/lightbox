@@ -54,21 +54,14 @@ CRGB leds[PIXEL_COUNT];
 
 int colorselectstage = 0;
 int currentColor = 0;
-bool colorselectfullscreen = 0;
+int colorselectview = 0;
 
 bool colorselectgroups[][30] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
   {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,},
 
-  {0, 0, 0, 0, 0, 0, 1, 1, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
-  {0, 0, 0, 0, 0, 0, 1, 1, 0, 0,  0, 0, 1, 1, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 1, 1, 0, 0,},
-
   {0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
   {0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 1, 1, 0, 0, 0, 0,},
-
-  {0, 0, 1, 1, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
-  {0, 0, 1, 1, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 1, 1, 0, 0,  0, 0, 1, 1, 0, 0, 0, 0, 0, 0,},
-
 
   {1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
   {1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,},
@@ -76,53 +69,43 @@ bool colorselectgroups[][30] = {
 };
 long int colortimer = millis();
 int randomcolorinterval = 400;
+bool colorselectchange = false;
 
 int colors[5][4] = {
+  {255, 0, 255, 0},
   {255, 255, 255, 0},
-  {255, 255, 255, 0},
-  {120, 255, 255, 0},
-  {255, 255, 255, 0},
-  {255, 0, 255, 0}
+  {160, 255, 255, 0}
 };
 
 
 
 // m0
 
-int m0hsvselector = 0;
-int m0hsvvalues[] = {255, 255, 255};
+//int m0hsvselector = 0;
+//int m0hsvvalues[] = {255, 255, 255};
 int m0formationstage = 0;
-bool m0groups[][30] = {
+bool m0staticformations[][30] = {
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,},
-
-  //  {1,1,1,1,1,1,1,1,1,0,  0,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,0,},
-  {1, 1, 1, 1, 1, 1, 1, 1, 0, 0,  0, 0, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 0, 0,},
-  //  {1,1,1,1,1,1,1,0,0,0,  0,0,0,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,0,0,0,},
-  //  {1,1,1,1,1,1,0,0,0,0,  0,0,0,0,1,1,1,1,1,1,  1,1,1,1,1,1,0,0,0,0,},
-  {1, 1, 1, 1, 1, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 0, 0, 0, 0, 0,},
-  //  {1,1,1,1,0,0,0,0,0,0,  0,0,0,0,0,0,1,1,1,1,  1,1,1,1,0,0,0,0,0,0,},
-  //  {1,1,1,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,1,1,1,  1,1,1,0,0,0,0,0,0,0,},
-  {1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,},
-  //  {1,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,1,  1,0,0,0,0,0,0,0,0,0,},
-
-  //  {0,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,0,  0,1,1,1,1,1,1,1,1,1,},
-  {0, 0, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 0, 0,  0, 0, 1, 1, 1, 1, 1, 1, 1, 1,},
-  //  {0,0,0,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,0,0,0,  0,0,0,1,1,1,1,1,1,1,},
-  //  {0,0,0,0,1,1,1,1,1,1,  1,1,1,1,1,1,0,0,0,0,  0,0,0,0,1,1,1,1,1,1,},
-  {0, 0, 0, 0, 0, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 1, 1, 1, 1, 1,},
-  //  {0,0,0,0,0,0,1,1,1,1,  1,1,1,1,0,0,0,0,0,0,  0,0,0,0,0,0,1,1,1,1,},
-  //  {0,0,0,0,0,0,0,1,1,1,  1,1,1,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,1,1,1,},
-  {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,},
-  //  {0,0,0,0,0,0,0,0,0,1,  1,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,1,},
 
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 1, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
   {0, 0, 0, 0, 1, 1, 0, 0, 0, 0,  0, 0, 0, 1, 1, 1, 1, 0, 0, 0,  0, 0, 0, 0, 1, 1, 0, 0, 0, 0,},
 
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,}
+  {1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,},
+  {1, 1, 1, 1, 1, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 0, 0, 0, 0, 0,},
+
+  {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,},
+  {0, 0, 0, 0, 0, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 1, 1, 1, 1, 1,}
+
 };
+bool m1extrastage = false;
+long int m1cubicwavetime = 0;
+long int m1cubicwaveindex = 0;
+
+long int m1cubicwavecurrentdelay = 100;
+
+
+
 
 // m1
 
@@ -163,11 +146,13 @@ void setup() {
   pinMode(POT_PIN, INPUT);
   pinMode(ROTARY_PIN, INPUT);
 
-  delay(3000);
+  delay(5000);
   //
   //  strip.begin();
   //  strip.show(); // Initialize all pixels to 'off'
   FastLED.addLeds<NEOPIXEL, 6>(leds, PIXEL_COUNT);
+
+  delay(5000);
 
 
 
@@ -297,25 +282,19 @@ void loop() {
         if (colorselectstage > 3) {
           colorselectstage = 0;
           currentColor += 1;
-          if (currentColor > 4) {
+          if (currentColor > 2) {
             currentColor = 0;
           }
         }
-        if (colorselectstage > 20) {
-          colorselectstage = 0;
-        }
-
-        Serial.print("colorselectstage");
-        Serial.println(colorselectstage);
-        Serial.print("currentColor");
-        Serial.println(currentColor);
+        colorselectchange = true;
       }
       if (button2_changed == true) {
-        if (colorselectfullscreen == true) {
-          colorselectfullscreen = false;
-        } else {
-          colorselectfullscreen = true;
+        colorselectview += 1;
+        if (colorselectview > 2) {
+          colorselectview = 0;
         }
+
+        colorselectchange = true;
       }
       if (pot_changed) {
         //        m0hsvvalues[m0hsvselector] = old_pot_state * 255;
@@ -327,8 +306,10 @@ void loop() {
             colors[currentColor][colorselectstage] = 1;
           }
         }
+        colorselectchange = true;
 
       }
+
 
 
 
@@ -339,6 +320,54 @@ void loop() {
       //
 
     } else if (old_rotary_state == 1) {
+
+      int numFormations = sizeof(m0staticformations) / sizeof(bool[30]);
+
+      //      MODE TWO
+      Serial.println("MODE: 1");
+
+      if (button1_changed == true) {
+        m0formationstage += 1;
+        if (m0formationstage > numFormations + 3 - 1) {
+          m0formationstage = 0;
+        }
+      }
+
+      if (button2_changed == true) {
+        currentColor += 1;
+        if (currentColor > 2) {
+          currentColor = 0;
+        }
+      }
+
+      if (pot_changed) {
+        colors[currentColor][2] = old_pot_state * 255;
+        m1cubicwavecurrentdelay = map(old_pot_state, 0, 1, 0, 400);
+      }
+
+      if ( m0formationstage < numFormations) {
+        m1extrastage = false;
+        for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
+          if (m0staticformations[m0formationstage][i] == 0) {
+            leds[i] = CHSV(0, 0, 0);
+          } else {
+            leds[i] = CHSV( colors[currentColor][0], colors[currentColor][1], colors[currentColor][2]);
+
+          }
+
+        }
+        FastLED.show();
+        delay(30);
+      } else {
+        m1extrastage = true;
+        Serial.print("extra stage ");
+        Serial.println(abs(numFormations - m0formationstage));
+
+      }
+
+
+    } else if (old_rotary_state == 2) {
+
 
       //      MODE ONE
       Serial.println("MODE: 1");
@@ -370,61 +399,6 @@ void loop() {
 
 
       //
-
-    } else if (old_rotary_state == 2) {
-
-      //      MODE TWO
-      Serial.println("MODE: 2");
-
-
-      //      MODE ZERO
-
-      //      LET SELECT ONE COLOR AND ADJUST BRIGHTNESS OF THAT COLOR
-      //      ONE BUTTON SWTICHES HSV IDX,
-      //      POT CHANGES THE VALUES
-      //      THE OTHER BUTTON ADDS SOFT SAT and brightness noise
-
-      Serial.println("MODE: 0");
-      if (button1_changed == true) {
-        m0hsvselector += 1;
-        if (m0hsvselector > 2) {
-          m0hsvselector = 0;
-        }
-      }
-      if (button2_changed == true) {
-        m0formationstage += 1;
-        if (m0formationstage > sizeof(m0groups) / sizeof(bool[30]) - 1) {
-          m0formationstage = 0;
-        }
-        Serial.print("m0formationstage");
-        Serial.println(m0formationstage);
-      }
-      if (pot_changed) {
-        m0hsvvalues[m0hsvselector] = old_pot_state * 255;
-
-      }
-      for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
-        if (m0groups[m0formationstage][i] == 0) {
-          leds[i] = CHSV(0, 0, 0);
-        } else {
-          leds[i] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
-
-        }
-
-      }
-      //      leds[14] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
-      //      leds[15] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
-
-      //      for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
-      //        leds[i] = CHSV(0, 0, 0);
-      //        //          leds[i] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-      //      }
-      //      leds[14] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
-      //      leds[15] = CHSV( m0hsvvalues[0], m0hsvvalues[1], m0hsvvalues[2]);
-
-      FastLED.show();
-      delay(30);
-
 
 
       //
@@ -467,114 +441,172 @@ void loop() {
   }
 
   // Here comes stuff that happens every loop:
-  if (old_rotary_state == 0 && millis() - colortimer > randomcolorinterval ) {
+  if (old_rotary_state == 0 ) {
+    if (millis() - colortimer > randomcolorinterval || colorselectchange == true) {
+      colorselectchange = false;
 
 
-    for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
-      leds[j] = CHSV(0, 0, 0);
+      for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+        leds[j] = CHSV(0, 0, 0);
 
-    }
+      }
 
-    if (colorselectfullscreen == false) {
-      for (uint16_t i = 0; i < 10; i += 2) {
-        int randomcolor = int(random(0, 256));
-        for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
-          if ( (i / 2 != currentColor && colorselectgroups[i][j] == 0) || ( i / 2 == currentColor && colorselectgroups[i + 1][j] == 0 )) {
-          } else {
-            if (colors[i / 2][3] == 0) {
-              leds[j] = CHSV( colors[i / 2][0], colors[i / 2][1], colors[i / 2][2]);
-            } else {
-              leds[j] = CHSV( randomcolor, randomcolor, colors[i / 2][2]);
+      //      if (colorselectfullscreen == false) {
+      if (colorselectview == 0) {
+        for (uint16_t i = 0; i < 6; i += 2) {
+          int randomcolor = int(random(0, 256));
+          for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+            //            if ( (i / 2 != currentColor && colorselectgroups[i][j] == 0) || ( i / 2 == currentColor && colorselectgroups[i + 1][j] == 0 )) {
+            //            } else {
+
+            if ( (i / 2 != currentColor && colorselectgroups[i][j] == 1) || ( i / 2 == currentColor && colorselectgroups[i + 1][j] == 1 )) {
+
+              if ( (colors[i / 2][3] == 1 && i / 2 != currentColor) || (i / 2 == currentColor && colorselectstage > 2 &&  colors[i / 2][3] == 1 ) ) {
+
+                leds[j] = CHSV( randomcolor, randomcolor, colors[i / 2][2]);
+              } else {
+                leds[j] = CHSV( colors[i / 2][0], colors[i / 2][1], colors[i / 2][2]);
+
+              }
+
             }
-
           }
         }
-      }
-    } else {
-      int randomcolor = int(random(0, 256));
-      for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
-        if (colors[currentColor][3] == 0) {
-          leds[j] = CHSV( colors[currentColor][0], colors[currentColor][1], colors[currentColor][2]);
-        } else {
-          leds[j] = CHSV( randomcolor, randomcolor, colors[currentColor][2]);
-        }
-        
-      }
-    }
+      } else if (colorselectview == 2) {
+        for (uint16_t i = 0; i < 6; i += 2) {
+          int randomcolor = int(random(0, 256));
+          for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+            if ( colorselectgroups[i + 1][j] == 1 ) {
 
-    FastLED.show();
-    delay(30);
-    colortimer = millis();
+              if ( (colors[i / 2 ][3] == 1 ) ) {
 
+                leds[j] = CHSV( randomcolor, randomcolor, colors[i / 2][2]);
+              } else {
+                leds[j] = CHSV( colors[i / 2][0], colors[i / 2][1], colors[i / 2][2]);
 
+              }
 
-  } else if (old_rotary_state == 1) {
-    // MODE 1, everyloop
-    if (m1animationchangemade == true || (millis() - m1animationtime > m1animationspeed && millis() - m1animationtime > m1animationdelay )) {
-      for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
-        leds[i] = CHSV( 0, 0, 0);
-      }
-      for (int i = 0; i < 3; i++) {
-        int prepreprepre = m1animationstage - 4;
-        int preprepre = m1animationstage - 3;
-        int prepre = m1animationstage - 2;
-        int pre = m1animationstage - 1;
-        int post = m1animationstage + 1;
-        int postpost = m1animationstage + 2;
-        int postpostpost = m1animationstage + 3;
-        int postpostpostpost = m1animationstage + 4;
-        leds[ m1groups[m1animationstage][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-
-        if (prepreprepre >= 0) {
-          leds[ m1groups[prepreprepre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[prepreprepre][i] ].fadeLightBy( 250 );
-        }
-        if (preprepre >= 0) {
-          leds[ m1groups[preprepre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[preprepre][i] ].fadeLightBy( 240 );
-        }
-        if (prepre >= 0) {
-          leds[ m1groups[prepre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[prepre][i] ].fadeLightBy( 230 );
-        }
-        if (pre >= 0) {
-          leds[ m1groups[pre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[pre][i] ].fadeLightBy( 200 );
-        }
-        if (post <= 9) {
-          leds[ m1groups[post][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[post][i] ].fadeLightBy( 200 );
-        }
-        if (postpost <= 9) {
-          leds[ m1groups[postpost][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[postpost][i] ].fadeLightBy( 230 );
-        }
-        if (postpostpost <= 9) {
-          leds[ m1groups[postpostpost][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[postpostpost][i] ].fadeLightBy( 240 );
-        }
-        if (postpostpostpost <= 9) {
-          leds[ m1groups[postpostpostpost][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
-          leds[ m1groups[postpostpostpost][i] ].fadeLightBy( 250 );
+            }
+          }
         }
 
+      } else if (colorselectview == 1) {
+        int randomcolor = int(random(0, 256));
+        for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+          //          if (colors[currentColor][3] == 0) {
+          if ( colors[currentColor][3] == 1 && colorselectstage > 2 ) {
+            leds[j] = CHSV( randomcolor, randomcolor, colors[currentColor][2]);
+
+          } else {
+            leds[j] = CHSV( colors[currentColor][0], colors[currentColor][1], colors[currentColor][2]);
+
+          }
+
+        }
       }
 
       FastLED.show();
       delay(30);
-      m1animationtime = millis();
-      m1animationdelay = 0;
-      m1animationchangemade = false;
+      colortimer = millis();
 
-      m1animationstage += m1animtationdirection;
-
-      if (m1animationstage > 9 || m1animationstage < 0) {
-        m1animationstage -= m1animtationdirection;
-        m1animtationdirection *= -1;
-        int numDelays = sizeof(m1animationdelays) / sizeof(long int) ;
-        m1animationdelay = m1animationdelays[ int(random(0, numDelays)) ];
-      }
     }
+
+  } else if (old_rotary_state == 1) {
+
+    if (m1extrastage == true) {
+      int numFormations = sizeof(m0staticformations) / sizeof(bool[30]);
+      int stage = abs(numFormations - m0formationstage);
+
+
+      if (stage == 0) {
+        if (millis() - m1cubicwavetime > m1cubicwavecurrentdelay) {
+          m1cubicwaveindex += 1;
+          colors[currentColor][2]  = map(quadwave8(m1cubicwaveindex), 0, 255, 50, 255);
+          Serial.println(colors[currentColor][2]);
+          for (uint16_t j = 0; j < PIXEL_COUNT; j++) {
+            leds[j] = CHSV( colors[currentColor][0], colors[currentColor][1], colors[currentColor][2]);
+          }
+
+          FastLED.show();
+          delay(30);
+          m1cubicwavetime = millis();
+        }
+
+      }
+
+
+
+
+    }
+
+
+
+    // MODE 1, everyloop
+    //    if (m1animationchangemade == true || (millis() - m1animationtime > m1animationspeed && millis() - m1animationtime > m1animationdelay )) {
+    //      for (uint16_t i = 0; i < PIXEL_COUNT; i++) {
+    //        leds[i] = CHSV( 0, 0, 0);
+    //      }
+    //      for (int i = 0; i < 3; i++) {
+    //        int prepreprepre = m1animationstage - 4;
+    //        int preprepre = m1animationstage - 3;
+    //        int prepre = m1animationstage - 2;
+    //        int pre = m1animationstage - 1;
+    //        int post = m1animationstage + 1;
+    //        int postpost = m1animationstage + 2;
+    //        int postpostpost = m1animationstage + 3;
+    //        int postpostpostpost = m1animationstage + 4;
+    //        leds[ m1groups[m1animationstage][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //
+    //        if (prepreprepre >= 0) {
+    //          leds[ m1groups[prepreprepre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[prepreprepre][i] ].fadeLightBy( 250 );
+    //        }
+    //        if (preprepre >= 0) {
+    //          leds[ m1groups[preprepre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[preprepre][i] ].fadeLightBy( 240 );
+    //        }
+    //        if (prepre >= 0) {
+    //          leds[ m1groups[prepre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[prepre][i] ].fadeLightBy( 230 );
+    //        }
+    //        if (pre >= 0) {
+    //          leds[ m1groups[pre][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[pre][i] ].fadeLightBy( 200 );
+    //        }
+    //        if (post <= 9) {
+    //          leds[ m1groups[post][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[post][i] ].fadeLightBy( 200 );
+    //        }
+    //        if (postpost <= 9) {
+    //          leds[ m1groups[postpost][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[postpost][i] ].fadeLightBy( 230 );
+    //        }
+    //        if (postpostpost <= 9) {
+    //          leds[ m1groups[postpostpost][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[postpostpost][i] ].fadeLightBy( 240 );
+    //        }
+    //        if (postpostpostpost <= 9) {
+    //          leds[ m1groups[postpostpostpost][i] ] = CHSV( m1hsvvalues[0], m1hsvvalues[1], m1hsvvalues[2]);
+    //          leds[ m1groups[postpostpostpost][i] ].fadeLightBy( 250 );
+    //        }
+    //
+    //      }
+    //
+    //      FastLED.show();
+    //      delay(30);
+    //      m1animationtime = millis();
+    //      m1animationdelay = 0;
+    //      m1animationchangemade = false;
+    //
+    //      m1animationstage += m1animtationdirection;
+    //
+    //      if (m1animationstage > 9 || m1animationstage < 0) {
+    //        m1animationstage -= m1animtationdirection;
+    //        m1animtationdirection *= -1;
+    //        int numDelays = sizeof(m1animationdelays) / sizeof(long int) ;
+    //        m1animationdelay = m1animationdelays[ int(random(0, numDelays)) ];
+    //      }
+    //    }
   }
 
 
